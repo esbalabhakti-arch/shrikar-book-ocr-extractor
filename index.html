@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Shrikar Reading Comprehension</title>
+
+    <link
+        rel="stylesheet"
+        href="./css/styles.css"
+    >
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+    </script>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js">
+    </script>
+
+    <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>
+        📚 Shrikar Book OCR Extractor
+    </h1>
+
+    <p>
+        Clean Book Extraction — Version 1.7
+    </p>
+
+</header>
+
+
+<div class="container">
+
+    <!-- ===================================== -->
+    <!-- UPLOAD                                -->
+    <!-- ===================================== -->
+
+    <section
+        class="card"
+        id="uploadCard"
+    >
+
+        <h2>
+            1. Upload Story Book
+        </h2>
+
+        <p>
+            Choose a photographed or scanned PDF.
+            The book remains on this computer while
+            the browser processes it.
+        </p>
+
+        <div class="upload-area">
+
+            <h3>
+                📄 Choose Story PDF
+            </h3>
+
+            <input
+                type="file"
+                id="pdfFile"
+                accept="application/pdf"
+            >
+
+            <br>
+
+            <button id="processButton">
+                Read This Book
+            </button>
+
+        </div>
+
+        <div
+            id="errorBox"
+            class="error hidden">
+        </div>
+
+    </section>
+
+
+    <!-- ===================================== -->
+    <!-- PROCESSING                            -->
+    <!-- ===================================== -->
+
+    <section
+        class="card hidden"
+        id="processingCard"
+    >
+
+        <h2>
+            🔍 Extracting Story Text
+        </h2>
+
+        <p id="fileInfo"></p>
+
+        <p
+            class="status"
+            id="statusText"
+        >
+            Preparing PDF...
+        </p>
+
+        <div class="progress-shell">
+
+            <div
+                class="progress-bar"
+                id="progressBar">
+            </div>
+
+        </div>
+
+        <p id="progressText">
+            0%
+        </p>
+
+        <div class="warning">
+
+            OCR creates a draft only.
+
+            <strong>
+                You will approve the text before Shrikar uses it.
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================== -->
+    <!-- REVIEW                                -->
+    <!-- ===================================== -->
+
+    <section
+        class="card hidden"
+        id="reviewCard"
+    >
+
+        <div class="review-heading">
+
+            <div>
+
+                <h2>
+                    2. Parent Review
+                </h2>
+
+                <p>
+                    Compare each page with the extracted text.
+                    Fix mistakes and approve the page.
+                </p>
+
+            </div>
+
+
+            <div class="approval-summary">
+
+                <span id="approvedCount">
+                    0
+                </span>
+
+                /
+
+                <span id="totalReviewPages">
+                    0
+                </span>
+
+                pages reviewed
+
+            </div>
+
+        </div>
+
+
+<div class="autosave-note">
+
+    💾 Your text corrections, page approvals and rotations
+    are automatically saved in this browser.
+
+</div>
+
+
+<!-- ===================================== -->
+<!-- VERSION 1.6 REVIEW NAVIGATOR          -->
+<!-- ===================================== -->
+
+<div
+    class="review-navigator"
+    id="reviewNavigator"
+>
+
+    <div class="navigator-top">
+
+        <button
+            id="previousPageButton"
+            class="navigator-button"
+        >
+            ← Previous
+        </button>
+
+
+        <div class="page-position">
+
+            Page
+
+            <strong id="currentPageNumber">
+                1
+            </strong>
+
+            of
+
+            <strong id="reviewPageCount">
+                0
+            </strong>
+
+        </div>
+
+
+        <button
+            id="nextPageButton"
+            class="navigator-button"
+        >
+            Next →
+        </button>
+
+    </div>
+
+
+    <div class="navigator-tools">
+
+        <div class="jump-control">
+
+            <label for="jumpPageInput">
+                Jump to page:
+            </label>
+
+            <input
+                type="number"
+                id="jumpPageInput"
+                min="1"
+                value="1"
+            >
+
+            <button id="jumpPageButton">
+                Go
+            </button>
+
+        </div>
+
+
+        <button
+            id="nextUnreviewedButton"
+            class="secondary-button"
+        >
+            Find Next Page Needing Review
+        </button>
+
+    </div>
+
+
+    <div
+        class="navigator-status"
+        id="navigatorStatus"
+    >
+        Review the page below.
+    </div>
+
+</div>
+
+
+<div id="pagesContainer"></div>
+
+
+<div
+    class="review-navigator bottom-navigator"
+>
+
+    <div class="navigator-top">
+
+        <button
+            id="previousPageButtonBottom"
+            class="navigator-button"
+        >
+            ← Previous
+        </button>
+
+
+        <div class="page-position">
+
+            Page
+
+            <strong id="currentPageNumberBottom">
+                1
+            </strong>
+
+            of
+
+            <strong id="reviewPageCountBottom">
+                0
+            </strong>
+
+        </div>
+
+
+        <button
+            id="nextPageButtonBottom"
+            class="navigator-button"
+        >
+            Next →
+        </button>
+
+    </div>
+
+</div>
+
+
+        <div id="pagesContainer"></div>
+
+
+        <!-- ================================= -->
+        <!-- FINAL BOOK APPROVAL               -->
+        <!-- ================================= -->
+
+        <div
+            class="book-approval-panel"
+            id="bookApprovalPanel"
+        >
+
+            <h2>
+                3. Finish Book Preparation
+            </h2>
+
+            <p id="bookApprovalMessage">
+
+                Review the pages above.
+
+            </p>
+
+
+            <button
+                id="approveBookButton"
+                disabled
+            >
+                ✓ Approve Book & Prepare Story
+            </button>
+
+
+            <div
+    id="bookReadyBox"
+    class="book-ready hidden"
+>
+
+    <h2>
+        🎉 Clean Book Ready
+    </h2>
+
+    <p>
+        Every source page has been reviewed.
+        Your corrected story text is ready to export.
+    </p>
+
+    <div class="export-explanation">
+
+        <div class="export-info-box">
+
+            <strong>
+                📄 Clean Text PDF
+            </strong>
+
+            <p>
+                A human-readable copy of the extracted story.
+                The exported PDF keeps exactly the same number
+                of pages as the source PDF.
+            </p>
+
+        </div>
+
+
+        <div class="export-info-box">
+
+            <strong>
+                💾 Book Data
+            </strong>
+
+            <p>
+                A machine-readable backup containing the clean
+                text, source-page mapping, rotation and review
+                information. This will be useful for Shrikar's
+                future reading-comprehension application.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="export-buttons">
+
+        <button id="downloadPDFButton">
+            📄 Download Clean Text PDF
+        </button>
+
+        <button
+            id="downloadJSONButton"
+            class="secondary-button"
+        >
+            💾 Download Book Data
+        </button>
+
+        <button
+            id="showStoryButton"
+            class="secondary-button"
+        >
+            🔎 Preview Clean Story
+        </button>
+
+    </div>
+
+
+    <div
+        id="exportStatus"
+        class="export-status hidden"
+    ></div>
+
+</div>
+
+                <h2>
+                    🎉 Book Ready!
+                </h2>
+
+                <p>
+                    The reviewed story has been saved.
+                </p>
+
+                <p>
+                    The next stage will turn this clean text
+                    into Shrikar's reading-comprehension activity.
+                </p>
+
+                <button id="showStoryButton">
+                    Preview Clean Story
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="storyPreview"
+            class="story-preview hidden"
+        >
+
+            <h2>
+                Clean Story Preview
+            </h2>
+
+            <p>
+                This is the text that will eventually be used
+                to build Shrikar's reading activity.
+            </p>
+
+            <div id="cleanStoryText"></div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script
+    type="module"
+    src="./js/app.js">
+</script>
+
+</body>
+
+</html>
